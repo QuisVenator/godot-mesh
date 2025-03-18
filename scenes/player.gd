@@ -2,12 +2,18 @@ extends CharacterBody3D
 
 
 const SPEED = 10.0
-const JUMP_VELOCITY = 6
+const JUMP_VELOCITY = 7
 const GRAVITY = Vector3(0, -9.8, 0)
 
 var sensitivity = 0.002
 @onready var camera: Camera3D = $Camera3D
 @onready var coordinates: Label = $Camera3D/Label
+@onready var fps: Label = $Camera3D/FPS
+
+# Debug generate new chunk
+var chunks: Array[GridMap]
+@onready var debug_chunk: GridMap = $"../GridMap"
+@onready var world: Node3D = $".."
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -17,7 +23,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		rotation.y = rotation.y - event.relative.x * sensitivity
 		camera.rotation.x = camera.rotation.x - event.relative.y * sensitivity
 		camera.rotation.x = clamp(camera.rotation.x, deg_to_rad(-85), deg_to_rad(175))
+	elif event is InputEventKey and event.is_action_pressed("debug_generate_chunk"):
+		var new_chunk = debug_chunk.duplicate()
+		new_chunk.position += Vector3(64, 0, 0) * len(chunks)
+		chunks.append(new_chunk)
+		world.add_child(new_chunk)
 		
+
+func _process(delta: float) -> void:
+	if coordinates:
+		coordinates.text = "X: %.1f  Y: %.1f  Z: %.1f" % [position.x, position.y, position.z]
+	if fps:
+		fps.text = str(Engine.get_frames_per_second())
+	
 
 func _physics_process(delta: float) -> void:
 	# Add the gravity.
@@ -41,4 +59,3 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	
-	coordinates.text = "X: %.1f  Y: %.1f  Z: %.1f" % [position.x, position.y, position.z]
