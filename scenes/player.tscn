@@ -1,4 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://r1ctiioa1swu"]
+[gd_scene load_steps=5 format=3 uid="uid://r1ctiioa1swu"]
+
+[ext_resource type="Texture2D" uid="uid://d21ghpmn2fdmc" path="res://resources/crosshair.png" id="1_3vyb7"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_u8vuu"]
 radius = 0.8
@@ -16,6 +18,7 @@ height = 3.9
 shape = SubResource("CapsuleShape3D_u8vuu")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("CapsuleMesh_3vyb7")
 
 [node name="Camera3D" type="Camera3D" parent="."]
@@ -25,9 +28,26 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.54576, 0)
 offset_right = 40.0
 offset_bottom = 23.0
 
+[node name="Chunk Coordinates" type="Label" parent="Camera3D"]
+offset_top = 32.0
+offset_right = 40.0
+offset_bottom = 55.0
+
+[node name="Looking At" type="Label" parent="Camera3D"]
+offset_right = 2561.0
+offset_bottom = 91.0
+horizontal_alignment = 1
+
 [node name="FPS" type="Label" parent="Camera3D"]
 offset_left = 2520.0
 offset_right = 2560.0
 offset_bottom = 23.0
 label_settings = SubResource("LabelSettings_u8vuu")
 horizontal_alignment = 2
+
+[node name="RayCast3D" type="RayCast3D" parent="Camera3D"]
+target_position = Vector3(0, 0, -20)
+
+[node name="Sprite2D" type="Sprite2D" parent="Camera3D"]
+texture = ExtResource("1_3vyb7")
+offset = Vector2(1280, 720)
