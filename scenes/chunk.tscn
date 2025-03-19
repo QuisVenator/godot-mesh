@@ -1,8 +1,0 @@
-[gd_scene load_steps=3 format=3 uid="uid://cm1wn3sob46ps"]
-
-[ext_resource type="MeshLibrary" uid="uid://drw6wnmiqag8q" path="res://resources/blocks.tres" id="1_jas4a"]
-[ext_resource type="Script" uid="uid://dqiv6op8p06mg" path="res://scripts/grid_map.gd" id="2_jtw3q"]
-
-[node name="Chunk" type="GridMap"]
-mesh_library = ExtResource("1_jas4a")
-script = ExtResource("2_jtw3q")

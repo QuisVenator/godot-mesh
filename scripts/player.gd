@@ -16,15 +16,10 @@ var sensitivity = 0.002
 # Debug generate new chunk
 var chunks: Array[GridMap]
 #const Chunk = preload("res://scenes/chunk.tscn")
-@onready var debug_chunk: GridMap = $"../GridMap"
 @onready var world: Node3D = $".."
-var InitialChunkCoordinates: Vector3
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	debug_chunk.generate()
-	chunks.append(debug_chunk)
-	InitialChunkCoordinates = debug_chunk.position - Vector3(128,0,0) #This is due to me making mistakes in editor
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
@@ -32,11 +27,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		camera.rotation.x = camera.rotation.x - event.relative.y * sensitivity
 		camera.rotation.x = clamp(camera.rotation.x, deg_to_rad(-85), deg_to_rad(175))
 	elif event is InputEventKey and event.is_action_pressed("debug_generate_chunk"):
-		var new_chunk = Chunk.new()
-		new_chunk.generate()
-		new_chunk.position += Vector3(64, 0, 0) * len(chunks) + InitialChunkCoordinates
-		chunks.append(new_chunk)
-		world.add_child(new_chunk)
+		pass
+		#var new_chunk = Chunk.new()
+		#new_chunk.generate()
+		#new_chunk.position += Vector3(64, 0, 0) * len(chunks)
+		#chunks.append(new_chunk)
+		#world.add_child(new_chunk)
 		
 
 func _process(delta: float) -> void:
