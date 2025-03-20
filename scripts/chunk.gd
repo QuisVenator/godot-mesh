@@ -1,5 +1,6 @@
 @tool
-class_name Chunk extends MeshInstance3D
+extends MeshInstance3D
+class_name Chunk
 
 @export var update_mesh: bool
 static var chunk_size: int = 32
@@ -11,22 +12,30 @@ var a_mesh: ArrayMesh
 var vertices: PackedVector3Array
 var indices: PackedInt32Array
 var uvs: PackedVector2Array
-var chunk_coordinates: Vector3 = Vector3(0, 1, 0)
 
 var face_count = 0
 const tex_div: float = 0.25
 
 enum BlockType {Air, Dirt}
 var blocks: Array = []
+enum Side {Up, North, East, South, West, Down}
+var opaque = []
+
+@onready var world: Node3D = $".."
 
 func _init(mat) -> void:
 	self.material_override = mat
+	# TODO: FIX
+	#for s in Side:
+		#opaque.append([])
+		#for s2 in Side:
+			#opaque[int(s)][int(s2)] = false
 	
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	update_mesh = true
-	chunk_coordinates = world_to_chunk_coordinates(position)
+	init_block_array()
+	gen_chunk()
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -35,21 +44,6 @@ func _process(delta: float) -> void:
 		init_block_array()
 		gen_chunk()
 		update_mesh = false
-		
-
-static func world_to_chunk_coordinates(pos: Vector3) -> Vector3i:
-	var cpos = Vector3i()
-	cpos.x = int(floor(pos.x / chunk_size))
-	cpos.y = int(floor(pos.y / chunk_size))
-	cpos.z = int(floor(pos.z / chunk_size))
-	return cpos
-	
-static func chunk_to_world_coordinates(pos: Vector3i) -> Vector3i:
-	var wpos = Vector3i()
-	wpos.x = pos.x * chunk_size
-	wpos.y = pos.y * chunk_size
-	wpos.z = pos.z * chunk_size
-	return wpos
 	
 
 func init_block_array() -> void:
@@ -61,9 +55,9 @@ func init_block_array() -> void:
 	for x in chunk_size:
 		for y in chunk_size:
 			for z in chunk_size:
-				var height = noise.get_noise_2d((x + chunk_coordinates.x * chunk_size) * noise_scale, (z + chunk_coordinates.z * chunk_size) * noise_scale) + 1
+				var height = noise.get_noise_2d((x + position.x) * noise_scale, (z + position.z) * noise_scale) + 1
 				height *= chunk_size / 2
-				if  y + surface_treshold + chunk_size * chunk_coordinates.y > height:
+				if  y + surface_treshold + position.y > height:
 					blocks.append(BlockType.Air)
 				else:
 					blocks.append(BlockType.Dirt)
@@ -108,6 +102,65 @@ func gen_chunk() -> void:
 	a_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, array)
 	mesh = a_mesh
 
+func need_render(pos: Vector3, side: Chunk.Side) -> bool:
+	match side:
+		Side.Up:
+			var c = world.get_chunk(position + Vector3(0,1,0))
+			var block_transparent = not block_is_opaque(pos + Vector3(0,1,0))
+			var chunk_transparent = true
+			#if c:
+				#chunk_transparent = not c.opaque[]
+				#pass
+				
+			return chunk_transparent and block_transparent
+		Side.North:
+			var c = world.get_chunk(position + Vector3(1,0,0))
+			var block_transparent = not block_is_opaque(pos + Vector3(1,0,0))
+			var chunk_transparent = true
+			#if c:
+				#chunk_transparent = not c.opaque[]
+				#pass
+				
+			return chunk_transparent and block_transparent
+		Side.East:
+			var c = world.get_chunk(position + Vector3(0,0,1))
+			var block_transparent = not block_is_opaque(pos + Vector3(0,0,1))
+			var chunk_transparent = true
+			#if c:
+				#chunk_transparent = not c.opaque[]
+				#pass
+				
+			return chunk_transparent and block_transparent
+		Side.South:
+			var c = world.get_chunk(position + Vector3(-1,0,0))
+			var block_transparent = not block_is_opaque(pos + Vector3(-1,0,0))
+			var chunk_transparent = true
+			#if c:
+				#chunk_transparent = not c.opaque[]
+				#pass
+				
+			return chunk_transparent and block_transparent
+		Side.West:
+			var c = world.get_chunk(position + Vector3(0,0,-1))
+			var block_transparent = not block_is_opaque(pos + Vector3(0,0,-1))
+			var chunk_transparent = true
+			#if c:
+				#chunk_transparent = not c.opaque[]
+				#pass
+				
+			return chunk_transparent and block_transparent
+		Side.Down:
+			var c = world.get_chunk(position + Vector3(0,-1,0))
+			var block_transparent = not block_is_opaque(pos + Vector3(0,-1,0))
+			var chunk_transparent = true
+			#if c:
+				#chunk_transparent = not c.opaque[]
+				#pass
+				
+			return chunk_transparent and block_transparent
+		_:
+			return false
+
 func block_is_opaque(pos: Vector3) -> bool:
 	if not do_culling:
 		return false
@@ -119,7 +172,7 @@ func block_is_opaque(pos: Vector3) -> bool:
 
 func gen_cube(pos: Vector3) -> void:
 	# TOP
-	if not block_is_opaque(pos + Vector3(0,1,0)):
+	if need_render(pos, Side.Up):
 		vertices.append(pos + Vector3(-0.5, 0.5, 0.5))
 		vertices.append(pos + Vector3(-0.5, 0.5, -0.5))
 		vertices.append(pos + Vector3(0.5, 0.5, -0.5))
@@ -128,7 +181,7 @@ func gen_cube(pos: Vector3) -> void:
 		add_uv(Vector2(0,0))
 	
 	# North
-	if not block_is_opaque(pos + Vector3(1,0,0)):
+	if need_render(pos, Side.North):
 		vertices.append(pos + Vector3(0.5, 0.5, 0.5))
 		vertices.append(pos + Vector3(0.5, 0.5, -0.5))
 		vertices.append(pos + Vector3(0.5, -0.5, -0.5))
@@ -137,7 +190,7 @@ func gen_cube(pos: Vector3) -> void:
 		add_uv(Vector2(1,0))
 	
 	# East
-	if not block_is_opaque(pos + Vector3(0,0,1)):
+	if need_render(pos, Side.East):
 		vertices.append(pos + Vector3(-0.5, 0.5, 0.5))
 		vertices.append(pos + Vector3(0.5, 0.5, 0.5))
 		vertices.append(pos + Vector3(0.5, -0.5, 0.5))
@@ -146,7 +199,7 @@ func gen_cube(pos: Vector3) -> void:
 		add_uv(Vector2(2,0))
 	
 	# South
-	if not block_is_opaque(pos + Vector3(-1,0,0)):
+	if need_render(pos, Side.South):
 		vertices.append(pos + Vector3(-0.5, 0.5, -0.5))
 		vertices.append(pos + Vector3(-0.5, 0.5, 0.5))
 		vertices.append(pos + Vector3(-0.5, -0.5, 0.5))
@@ -155,7 +208,7 @@ func gen_cube(pos: Vector3) -> void:
 		add_uv(Vector2(3,0))
 	
 	# West
-	if not block_is_opaque(pos + Vector3(0,0,-1)):
+	if need_render(pos, Side.West):
 		vertices.append(pos + Vector3(0.5, 0.5, -0.5))
 		vertices.append(pos + Vector3(-0.5, 0.5, -0.5))
 		vertices.append(pos + Vector3(-0.5, -0.5, -0.5))
@@ -164,7 +217,7 @@ func gen_cube(pos: Vector3) -> void:
 		add_uv(Vector2(0,1))
 	
 	# Down
-	if not block_is_opaque(pos + Vector3(0,-1,0)):
+	if need_render(pos, Side.Down):
 		vertices.append(pos + Vector3(0.5, -0.5, 0.5))
 		vertices.append(pos + Vector3(0.5, -0.5, -0.5))
 		vertices.append(pos + Vector3(-0.5, -0.5, -0.5))

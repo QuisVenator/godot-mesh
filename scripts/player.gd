@@ -11,7 +11,6 @@ var creative_mode = true
 @onready var camera: Camera3D = $Camera3D
 @onready var raycast: RayCast3D = $Camera3D/RayCast3D
 @onready var coordinates: Label = $Camera3D/Label
-@onready var chunk_coordinates: Label = $"Camera3D/Chunk Coordinates"
 @onready var fps: Label = $Camera3D/FPS
 @onready var looking_at: Label = $"Camera3D/Looking At"
 
@@ -32,9 +31,6 @@ func _process(delta: float) -> void:
 		coordinates.text = "X: %.1f  Y: %.1f  Z: %.1f" % [position.x, position.y, position.z]
 	if fps:
 		fps.text = str(Engine.get_frames_per_second())
-	if chunk_coordinates:
-		var chunkpos = get_current_chunk()
-		chunk_coordinates.text = "X: %.1f  Y: %.1f  Z: %.1f" % [chunkpos.x, chunkpos.y, chunkpos.z]
 		
 	
 
@@ -84,24 +80,10 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	
-	var chunk_beneath = Chunk.world_to_chunk_coordinates(position) + Vector3i(0,-1,0)
-	for x in range(5):
-		for z in range(5):
-			world.add_chunk(chunk_beneath + Vector3i(x,0,z))
-	
 	if looking_at:
 		if raycast.is_colliding():
 			var pos = raycast.get_collision_point() - raycast.get_collision_normal() * 0.5
 			looking_at.text = "Looking at X: %f, Y: %f, Z: %f" % [pos.x, pos.y, pos.z]
-	
-
-func get_current_chunk() -> Vector3:
-	var current_chunk = position
-	current_chunk.x = floor(current_chunk.x / 64)
-	current_chunk.y = floor(current_chunk.y / 64)
-	current_chunk.z = floor(current_chunk.z / 64)
-	
-	return current_chunk
 	
 
 func leave_chunk():
