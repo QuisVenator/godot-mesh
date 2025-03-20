@@ -1,16 +1,17 @@
 @tool
-extends MeshInstance3D
+class_name Chunk extends MeshInstance3D
 
 @export var update_mesh: bool
-@export var chunk_size: int = 32
+static var chunk_size: int = 32
 @export var surface_treshold: float = 0.0
-@export var do_culling: bool = false
-@export var noise_scale: float = 1.0
+var do_culling: bool = true
+var noise_scale: float = 2.0
 
 var a_mesh: ArrayMesh
 var vertices: PackedVector3Array
 var indices: PackedInt32Array
 var uvs: PackedVector2Array
+var chunk_coordinates: Vector3 = Vector3(0, 1, 0)
 
 var face_count = 0
 const tex_div: float = 0.25
@@ -18,9 +19,14 @@ const tex_div: float = 0.25
 enum BlockType {Air, Dirt}
 var blocks: Array = []
 
+func _init(mat) -> void:
+	self.material_override = mat
+	
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	pass # Replace with function body.
+	update_mesh = true
+	chunk_coordinates = world_to_chunk_coordinates(position)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -31,6 +37,21 @@ func _process(delta: float) -> void:
 		update_mesh = false
 		
 
+static func world_to_chunk_coordinates(pos: Vector3) -> Vector3i:
+	var cpos = Vector3i()
+	cpos.x = int(floor(pos.x / chunk_size))
+	cpos.y = int(floor(pos.y / chunk_size))
+	cpos.z = int(floor(pos.z / chunk_size))
+	return cpos
+	
+static func chunk_to_world_coordinates(pos: Vector3i) -> Vector3i:
+	var wpos = Vector3i()
+	wpos.x = pos.x * chunk_size
+	wpos.y = pos.y * chunk_size
+	wpos.z = pos.z * chunk_size
+	return wpos
+	
+
 func init_block_array() -> void:
 	blocks = []
 	var rand = RandomNumberGenerator.new()
@@ -40,9 +61,9 @@ func init_block_array() -> void:
 	for x in chunk_size:
 		for y in chunk_size:
 			for z in chunk_size:
-				var height = noise.get_noise_2d(x * noise_scale, z * noise_scale) + 1
+				var height = noise.get_noise_2d((x + chunk_coordinates.x * chunk_size) * noise_scale, (z + chunk_coordinates.z * chunk_size) * noise_scale) + 1
 				height *= chunk_size / 2
-				if  y + surface_treshold > height:
+				if  y + surface_treshold + chunk_size * chunk_coordinates.y > height:
 					blocks.append(BlockType.Air)
 				else:
 					blocks.append(BlockType.Dirt)
@@ -74,6 +95,10 @@ func gen_chunk() -> void:
 			for z in range(chunk_size):
 				if blocks[x * chunk_size * chunk_size + y * chunk_size + z] == BlockType.Dirt:
 					gen_cube(Vector3(x,y,z))
+	
+	# ignore empty chunks
+	if len(vertices) == 0:
+		return
 	
 	var array = []
 	array.resize(Mesh.ARRAY_MAX)

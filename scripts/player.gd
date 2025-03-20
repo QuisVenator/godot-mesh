@@ -2,6 +2,7 @@ extends CharacterBody3D
 
 
 const SPEED = 10.0
+var creative_speed = 10.0
 const JUMP_VELOCITY = 7
 const GRAVITY = Vector3(0, -9.8, 0)
 
@@ -14,9 +15,6 @@ var creative_mode = true
 @onready var fps: Label = $Camera3D/FPS
 @onready var looking_at: Label = $"Camera3D/Looking At"
 
-# Debug generate new chunk
-var chunks: Array[GridMap]
-#const Chunk = preload("res://scenes/chunk.tscn")
 @onready var world: Node3D = $".."
 
 func _ready() -> void:
@@ -37,14 +35,17 @@ func _process(delta: float) -> void:
 	if chunk_coordinates:
 		var chunkpos = get_current_chunk()
 		chunk_coordinates.text = "X: %.1f  Y: %.1f  Z: %.1f" % [chunkpos.x, chunkpos.y, chunkpos.z]
-			
-		
 		
 	
 
 func _physics_process(delta: float) -> void:
 	# Creative movement
 	if creative_mode:
+		if Input.is_action_just_pressed("scroll_up"):
+			creative_speed = creative_speed * 1.1
+		elif Input.is_action_just_pressed("scroll_down"):
+			creative_speed = creative_speed / 11 * 10
+
 		var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 		var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 		if Input.is_action_pressed("move_jump"):
@@ -54,15 +55,13 @@ func _physics_process(delta: float) -> void:
 			direction += Vector3(0,-1,0)
 			direction = direction.normalized()
 		if direction:
-			velocity.x = direction.x * SPEED
-			velocity.y = direction.y * SPEED
-			velocity.z = direction.z * SPEED
+			velocity.x = direction.x * creative_speed
+			velocity.y = direction.y * creative_speed
+			velocity.z = direction.z * creative_speed
 		else:
 			velocity.x = 0
 			velocity.y = 0
 			velocity.z = 0
-
-		move_and_slide()
 	else:
 		# Add the gravity.
 		if not is_on_floor():
@@ -85,6 +84,10 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	
+	var chunk_beneath = Chunk.world_to_chunk_coordinates(position) + Vector3i(0,-1,0)
+	for x in range(5):
+		for z in range(5):
+			world.add_chunk(chunk_beneath + Vector3i(x,0,z))
 	
 	if looking_at:
 		if raycast.is_colliding():
