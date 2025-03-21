@@ -2,11 +2,7 @@
 extends MeshInstance3D
 class_name Chunk
 
-@export var update_mesh: bool
 static var chunk_size: int = 32
-@export var surface_treshold: float = 0.0
-var do_culling: bool = true
-var noise_scale: float = 2.0
 
 var a_mesh: ArrayMesh
 var vertices: PackedVector3Array
@@ -16,20 +12,33 @@ var uvs: PackedVector2Array
 var face_count = 0
 const tex_div: float = 0.25
 
-enum BlockType {Air, Dirt}
 var blocks: Array = []
 enum Side {Up, North, East, South, West, Down}
+enum Direction {
+	UP_DOWN, 
+	UP_NORTH, 
+	UP_EAST, 
+	UP_SOUTH, 
+	UP_WEST, 
+	NORTH_DOWN, 
+	NORT_EAST,
+	NORTH_SOUTH,
+	NORTH_WEST, 
+	EAST_DOWN, 
+	EAST_SOUTH, 
+	EAST_WEST, 
+	SOUTH_DOWN, 
+	SOUTH_WEST,
+	WEST_DOWN
+}
 var opaque = []
 
 @onready var world: Node3D = $".."
 
 func _init(mat) -> void:
 	self.material_override = mat
-	# TODO: FIX
-	#for s in Side:
-		#opaque.append([])
-		#for s2 in Side:
-			#opaque[int(s)][int(s2)] = false
+	for d in Direction:
+		opaque.append(false)
 	
 
 # Called when the node enters the scene tree for the first time.
@@ -40,27 +49,17 @@ func _ready() -> void:
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-	if update_mesh:
-		init_block_array()
-		gen_chunk()
-		update_mesh = false
+	pass
 	
 
 func init_block_array() -> void:
 	blocks = []
-	var rand = RandomNumberGenerator.new()
-	var noise = FastNoiseLite.new()
-	noise.seed = 123
-	noise.noise_type = FastNoiseLite.TYPE_CELLULAR
 	for x in chunk_size:
+		blocks.append([])
 		for y in chunk_size:
+			blocks[x].append([])
 			for z in chunk_size:
-				var height = noise.get_noise_2d((x + position.x) * noise_scale, (z + position.z) * noise_scale) + 1
-				height *= chunk_size / 2
-				if  y + surface_treshold + position.y > height:
-					blocks.append(BlockType.Air)
-				else:
-					blocks.append(BlockType.Dirt)
+				blocks[x][y].append(world.get_block(x+position.x, y+position.y, z+position.z))
 
 func add_uv(tpos: Vector2) -> void:
 	uvs.append(Vector2(tpos.x * tex_div, tpos.y * tex_div))
@@ -87,7 +86,7 @@ func gen_chunk() -> void:
 	for x in range(chunk_size):
 		for y in range(chunk_size):
 			for z in range(chunk_size):
-				if blocks[x * chunk_size * chunk_size + y * chunk_size + z] == BlockType.Dirt:
+				if blocks[x][y][z] == World.BlockType.Dirt:
 					gen_cube(Vector3(x,y,z))
 	
 	# ignore empty chunks
@@ -105,70 +104,66 @@ func gen_chunk() -> void:
 func need_render(pos: Vector3, side: Chunk.Side) -> bool:
 	match side:
 		Side.Up:
-			var c = world.get_chunk(position + Vector3(0,1,0))
-			var block_transparent = not block_is_opaque(pos + Vector3(0,1,0))
-			var chunk_transparent = true
+			return not block_is_opaque(pos + Vector3(0,1,0))
+			#var c = world.get_chunk(position + Vector3(0,1,0))
+			#var block_transparent = not block_is_opaque(pos + Vector3(0,1,0))
+			#var chunk_transparent = true
 			#if c:
-				#chunk_transparent = not c.opaque[]
-				#pass
-				
-			return chunk_transparent and block_transparent
+				#chunk_transparent = not c.opaque[int(Direction.UP_DOWN)]
+				#
+			#return chunk_transparent and block_transparent
 		Side.North:
-			var c = world.get_chunk(position + Vector3(1,0,0))
-			var block_transparent = not block_is_opaque(pos + Vector3(1,0,0))
-			var chunk_transparent = true
+			return not block_is_opaque(pos + Vector3(1,0,0))
+			#var c = world.get_chunk(position + Vector3(1,0,0))
+			#var block_transparent = not block_is_opaque(pos + Vector3(1,0,0))
+			#var chunk_transparent = true
 			#if c:
-				#chunk_transparent = not c.opaque[]
-				#pass
-				
-			return chunk_transparent and block_transparent
+				#chunk_transparent = not c.opaque[int(Direction.NORTH_SOUTH)]
+				#
+			#return chunk_transparent and block_transparent
 		Side.East:
-			var c = world.get_chunk(position + Vector3(0,0,1))
-			var block_transparent = not block_is_opaque(pos + Vector3(0,0,1))
-			var chunk_transparent = true
+			return not block_is_opaque(pos + Vector3(0,0,1))
+			#var c = world.get_chunk(position + Vector3(0,0,1))
+			#var block_transparent = not block_is_opaque(pos + Vector3(0,0,1))
+			#var chunk_transparent = true
 			#if c:
-				#chunk_transparent = not c.opaque[]
-				#pass
-				
-			return chunk_transparent and block_transparent
+				#chunk_transparent = not c.opaque[int(Direction.EAST_WEST)]
+				#
+			#return chunk_transparent and block_transparent
 		Side.South:
-			var c = world.get_chunk(position + Vector3(-1,0,0))
-			var block_transparent = not block_is_opaque(pos + Vector3(-1,0,0))
-			var chunk_transparent = true
+			return not block_is_opaque(pos + Vector3(-1,0,0))
+			#var c = world.get_chunk(position + Vector3(-1,0,0))
+			#var block_transparent = not block_is_opaque(pos + Vector3(-1,0,0))
+			#var chunk_transparent = true
 			#if c:
-				#chunk_transparent = not c.opaque[]
-				#pass
-				
-			return chunk_transparent and block_transparent
+				#chunk_transparent = not c.opaque[int(Direction.NORTH_SOUTH)]
+				#
+			#return chunk_transparent and block_transparent
 		Side.West:
-			var c = world.get_chunk(position + Vector3(0,0,-1))
-			var block_transparent = not block_is_opaque(pos + Vector3(0,0,-1))
-			var chunk_transparent = true
+			return not block_is_opaque(pos + Vector3(0,0,-1))
+			#var c = world.get_chunk(position + Vector3(0,0,-1))
+			#var block_transparent = not block_is_opaque(pos + Vector3(0,0,-1))
+			#var chunk_transparent = true
 			#if c:
-				#chunk_transparent = not c.opaque[]
-				#pass
-				
-			return chunk_transparent and block_transparent
+				#chunk_transparent = not c.opaque[int(Direction.EAST_WEST)]
+				#
+			#return chunk_transparent and block_transparent
 		Side.Down:
-			var c = world.get_chunk(position + Vector3(0,-1,0))
-			var block_transparent = not block_is_opaque(pos + Vector3(0,-1,0))
-			var chunk_transparent = true
+			return not block_is_opaque(pos + Vector3(0,-1,0))
+			#var c = world.get_chunk(position + Vector3(0,-1,0))
+			#var block_transparent = not block_is_opaque(pos + Vector3(0,-1,0))
+			#var chunk_transparent = true
 			#if c:
-				#chunk_transparent = not c.opaque[]
-				#pass
-				
-			return chunk_transparent and block_transparent
+				#chunk_transparent = not c.opaque[int(Direction.UP_DOWN)]
+				#
+			#return chunk_transparent and block_transparent
 		_:
 			return false
 
 func block_is_opaque(pos: Vector3) -> bool:
-	if not do_culling:
-		return false
-	if pos.x >= chunk_size or pos.y >= chunk_size or pos.z >=chunk_size:
-		return false
-	if pos.x < 0 or pos.y < 0 or pos.z < 0:
-		return false
-	return blocks[pos.x * chunk_size * chunk_size + pos.y * chunk_size + pos.z] != BlockType.Air
+	if pos.x < 0 or pos.x >= chunk_size or pos.y < 0 or pos.y >= chunk_size or pos.z < 0 or pos.z >= chunk_size:
+		return world.get_block(pos.x+position.x, pos.y+position.y, pos.z+position.z) != World.BlockType.Air
+	return blocks[pos.x][pos.y][pos.z] != World.BlockType.Air
 
 func gen_cube(pos: Vector3) -> void:
 	# TOP

@@ -10,7 +10,6 @@ var sensitivity = 0.002
 var creative_mode = true
 @onready var camera: Camera3D = $Camera3D
 @onready var raycast: RayCast3D = $Camera3D/RayCast3D
-@onready var coordinates: Label = $Camera3D/Label
 @onready var fps: Label = $Camera3D/FPS
 @onready var looking_at: Label = $"Camera3D/Looking At"
 
@@ -27,8 +26,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		
 
 func _process(delta: float) -> void:
-	if coordinates:
-		coordinates.text = "X: %.1f  Y: %.1f  Z: %.1f" % [position.x, position.y, position.z]
 	if fps:
 		fps.text = str(Engine.get_frames_per_second())
 		
