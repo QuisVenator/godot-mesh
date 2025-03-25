@@ -78,3 +78,9 @@ func RemoveBlock(x: float, y: float, z: float):
 	var chunk_pos = Chunk.WorldToChunkPos(x,y,z)
 	existing_chunks[world_pos].blocks[chunk_pos.x][chunk_pos.y][chunk_pos.z] = BlockType.Air
 	existing_chunks[world_pos].gen_chunk()
+	
+func SetBlock(x: float, y: float, z: float, block: BlockType):
+	var world_pos = Chunk.GetChunkPosFromBlock(x,y,z)
+	var chunk_pos = Chunk.WorldToChunkPos(x,y,z)
+	existing_chunks[world_pos].blocks[chunk_pos.x][chunk_pos.y][chunk_pos.z] = block
+	existing_chunks[world_pos].gen_chunk()

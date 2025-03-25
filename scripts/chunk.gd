@@ -2,7 +2,7 @@
 extends MeshInstance3D
 class_name Chunk
 
-static var chunk_size: int = 32
+static var chunk_size: int = 16
 
 var a_mesh: ArrayMesh
 var vertices: PackedVector3Array

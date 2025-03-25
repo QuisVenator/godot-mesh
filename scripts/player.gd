@@ -81,6 +81,9 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_just_pressed("left_click"):
 		var pos = raycast.get_collision_point() - raycast.get_collision_normal() * 0.5
 		world.RemoveBlock(round(pos.x), round(pos.y), round(pos.z))
+	if Input.is_action_just_pressed("right_click"):
+		var pos = raycast.get_collision_point() + raycast.get_collision_normal() * 0.5
+		world.SetBlock(round(pos.x), round(pos.y), round(pos.z), World.BlockType.Dirt)
 
 	move_and_slide()
 	
