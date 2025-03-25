@@ -7,7 +7,7 @@ const JUMP_VELOCITY = 7
 const GRAVITY = Vector3(0, -9.8, 0)
 
 var sensitivity = 0.002
-var creative_mode = true
+var creative_mode = false
 @onready var camera: Camera3D = $Camera3D
 @onready var raycast: RayCast3D = $Camera3D/RayCast3D
 @onready var fps: Label = $Camera3D/FPS
@@ -32,6 +32,9 @@ func _process(delta: float) -> void:
 	
 
 func _physics_process(delta: float) -> void:
+	if Input.is_action_just_pressed("toggle_creative"):
+		creative_mode = !creative_mode
+	
 	# Creative movement
 	if creative_mode:
 		if Input.is_action_just_pressed("scroll_up"):

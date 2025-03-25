@@ -17,7 +17,7 @@ var cave_noise: FastNoiseLite
 
 enum BlockType {Air, Dirt}
 
-var mat = load("res://resources/gridmat.tres")
+var chunk_protoype = preload("res://scenes/chunk.tscn")
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -43,7 +43,7 @@ func Generate_chunks() -> void:
 	for x in range(-x_off, map_size.x-x_off):
 		for y in range(-y_off, map_size.y-y_off):
 			for z in range(-z_off, map_size.z-z_off):
-				var c = Chunk.new(mat)
+				var c = chunk_protoype.instantiate()
 				existing_chunks[Vector3i(x,y,z)] = c
 				c.position = Vector3(x*c.chunk_size,y*c.chunk_size,z*c.chunk_size)
 				add_child(c)

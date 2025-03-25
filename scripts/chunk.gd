@@ -35,8 +35,7 @@ var opaque = []
 
 @onready var world: Node3D = $".."
 
-func _init(mat) -> void:
-	self.material_override = mat
+func _init() -> void:
 	for d in Direction:
 		opaque.append(false)
 	
@@ -100,6 +99,11 @@ func gen_chunk() -> void:
 	array[Mesh.ARRAY_TEX_UV] = uvs
 	a_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, array)
 	mesh = a_mesh
+	
+	# Add collisions
+	var trimesh_collisions = a_mesh.create_trimesh_shape()
+	var collisionshape3d: CollisionShape3D = find_child("StaticBody3D").find_child("CollisionShape3D")
+	collisionshape3d.set_shape(trimesh_collisions)
 
 func need_render(pos: Vector3, side: Chunk.Side) -> bool:
 	match side:
