@@ -7,7 +7,7 @@ const JUMP_VELOCITY = 7
 const GRAVITY = Vector3(0, -9.8, 0)
 
 var sensitivity = 0.002
-var creative_mode = false
+var creative_mode = true
 @onready var camera: Camera3D = $Camera3D
 @onready var raycast: RayCast3D = $Camera3D/RayCast3D
 @onready var fps: Label = $Camera3D/FPS
@@ -77,13 +77,18 @@ func _physics_process(delta: float) -> void:
 		else:
 			velocity.x = 0
 			velocity.z = 0
+	
+	if Input.is_action_just_pressed("left_click"):
+		var pos = raycast.get_collision_point() - raycast.get_collision_normal() * 0.5
+		world.RemoveBlock(round(pos.x), round(pos.y), round(pos.z))
 
 	move_and_slide()
+	
 	
 	if looking_at:
 		if raycast.is_colliding():
 			var pos = raycast.get_collision_point() - raycast.get_collision_normal() * 0.5
-			looking_at.text = "Looking at X: %f, Y: %f, Z: %f" % [pos.x, pos.y, pos.z]
+			looking_at.text = "Looking at X: %d, Y: %d, Z: %d" % [round(pos.x), round(pos.y), round(pos.z)]
 	
 
 func leave_chunk():

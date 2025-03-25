@@ -44,7 +44,7 @@ func Generate_chunks() -> void:
 		for y in range(-y_off, map_size.y-y_off):
 			for z in range(-z_off, map_size.z-z_off):
 				var c = chunk_protoype.instantiate()
-				existing_chunks[Vector3i(x,y,z)] = c
+				existing_chunks[Vector3i(x,y,z) * Chunk.chunk_size] = c
 				c.position = Vector3(x*c.chunk_size,y*c.chunk_size,z*c.chunk_size)
 				add_child(c)
 				
@@ -72,3 +72,9 @@ func get_block(x, y, z):
 
 func get_chunk(pos: Vector3):
 	return null
+
+func RemoveBlock(x: float, y: float, z: float):
+	var world_pos = Chunk.GetChunkPosFromBlock(x,y,z)
+	var chunk_pos = Chunk.WorldToChunkPos(x,y,z)
+	existing_chunks[world_pos].blocks[chunk_pos.x][chunk_pos.y][chunk_pos.z] = BlockType.Air
+	existing_chunks[world_pos].gen_chunk()

@@ -5,7 +5,7 @@
 
 [node name="World" type="Node3D"]
 script = ExtResource("1_71j4m")
-map_size = Vector3i(4, 5, 4)
+map_size = Vector3i(3, 3, 3)
 
 [node name="Player" parent="." instance=ExtResource("2_rwgxs")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.2599, 28.6606, 7.83822)
